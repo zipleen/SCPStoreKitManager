@@ -1,5 +1,6 @@
 Pod::Spec.new do |s|
   s.platform = :ios
+  s.tvos.deployment_target = '9.0'
   s.name             = 'SCPStoreKitManager'
   s.version          = '1.1.2'
   s.summary          = 'Block based store kit manager for In-App Purchase on iOS7 & iOS8 with receipt validation.'

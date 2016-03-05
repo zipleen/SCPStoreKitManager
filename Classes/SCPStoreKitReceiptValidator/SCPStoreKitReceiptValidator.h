@@ -14,7 +14,11 @@
 typedef void(^Success)(SCPStoreKitReceipt *receipt);
 typedef void(^Failure)(NSError *error);
 
-@interface SCPStoreKitReceiptValidator : NSObject <SKProductsRequestDelegate, UIAlertViewDelegate>
+@interface SCPStoreKitReceiptValidator : NSObject <SKProductsRequestDelegate
+#ifndef __TVOS_AVAILABLE
+, UIAlertViewDelegate
+#endif
+>
 
 + (id)sharedInstance;
 

@@ -24,6 +24,7 @@
 @property (nonatomic, strong) NSString *customAlertViewTitle;
 @property (nonatomic, strong) NSString *customAlertViewMessage;
 
+@property (nonatomic, strong) SKReceiptRefreshRequest *receiptRefreshRequest;
 @end
 
 @implementation SCPStoreKitReceiptValidator
@@ -98,7 +99,33 @@
     {
         NSString *title = (_customAlertViewTitle) ? _customAlertViewTitle : @"In App purchase receipt";
         NSString *message = (_customAlertViewMessage) ? _customAlertViewMessage : @"We need to request a purchase receipt from Apple. To do this you will be asked to enter your Apple ID details.\n\nDo you want to request the receipt \nto restore purchases?";
+#ifdef __TVOS_AVAILABLE
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:title
+                                                                       message:message
+                                                                preferredStyle:UIAlertControllerStyleAlert];
         
+        
+        UIAlertAction* yesAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil)
+                                                            style:UIAlertActionStyleDefault
+                                                          handler:^(UIAlertAction * action) {
+                                                             [self requestNewReceipt];
+                                                         }];
+        
+        UIAlertAction* noAction = [UIAlertAction actionWithTitle:@"No"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:nil];
+        
+        [alert addAction:yesAction];
+        [alert addAction:noAction];
+        
+        // hack to find the current view controller because it is needed for UIAlertController
+        id rootViewController=[UIApplication sharedApplication].delegate.window.rootViewController;
+        if([rootViewController isKindOfClass:[UINavigationController class]])
+        {
+            rootViewController=[((UINavigationController *)rootViewController).viewControllers objectAtIndex:0];
+        }
+        [rootViewController presentViewController:alert animated:YES completion:nil];
+#else
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title
                                                             message:message
                                                            delegate:self
@@ -106,6 +133,8 @@
                                                   otherButtonTitles:@"Yes", nil];
         
         [alertView show];
+#endif
+        
     }
     else
     {
@@ -117,9 +146,9 @@
 - (void)requestNewReceipt
 {
     //Begin a request for a receipt from Apple
-    SKReceiptRefreshRequest *receiptRefreshRequest = [[SKReceiptRefreshRequest alloc] initWithReceiptProperties:nil];
-    [receiptRefreshRequest setDelegate:self];
-    [receiptRefreshRequest start];
+    self.receiptRefreshRequest = [[SKReceiptRefreshRequest alloc] initWithReceiptProperties:nil];
+    [self.receiptRefreshRequest setDelegate:self];
+    [self.receiptRefreshRequest start];
 }
 
 - (void)verifyReceiptAtPath:(NSString *)receiptPath success:(Success)successBlock failure:(Failure)failureBlock
@@ -239,6 +268,7 @@
 
 #pragma mark - UIAlertViewDelegate methods
 
+#ifndef __TVOS_AVAILABLE
 - (void)alertView:(UIAlertView *)alertView willDismissWithButtonIndex:(NSInteger)buttonIndex
 {
     if(buttonIndex != [alertView cancelButtonIndex])
@@ -246,5 +276,6 @@
         [self requestNewReceipt];
     }
 }
+#endif
 
 @end

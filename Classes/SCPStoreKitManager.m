@@ -22,6 +22,7 @@
 @property (nonatomic, copy) PaymentTransactionStateRestored paymentTransactionStateRestoredBlock;
 
 @property (nonatomic, strong, readwrite) NSArray *products;
+@property (nonatomic, strong) SKProductsRequest *productsRequest;
 
 @end
 
@@ -60,11 +61,11 @@
 	self.invalidProductsBlock = invalidProductsBlock;
 	self.failureBlock = failureBlock;
 	
-	SKProductsRequest *productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productsSet];
+	self.productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productsSet];
 	
-	[productsRequest setDelegate:self];
+	[self.productsRequest setDelegate:self];
 	
-    [productsRequest start];
+    [self.productsRequest start];
 }
 
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response
@@ -80,6 +81,8 @@
 	{
 		_invalidProductsBlock([response invalidProductIdentifiers]);
 	}
+    
+    self.productsRequest = nil;
 }
 
 - (void)requestPaymentForProduct:(SKProduct *)product paymentTransactionStatePurchasing:(PaymentTransactionStatePurchasing)paymentTransactionStatePurchasingBlock paymentTransactionStatePurchased:(PaymentTransactionStatePurchased)paymentTransactionStatePurchasedBlock paymentTransactionStateFailed:(PaymentTransactionStateFailed)paymentTransactionStateFailedBlock paymentTransactionStateRestored:(PaymentTransactionStateRestored)paymentTransactionStateRestoredBlock failure:(Failure)failureBlock
